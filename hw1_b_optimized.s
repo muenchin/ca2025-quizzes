@@ -90,16 +90,33 @@ end_test_loop:
     addi sp, sp, 4
     jr ra    
 clz:
-    li   t0, 32                    # n = 32
-    li   t1, 16                    # c = 16
-clz_loop:
-    srl  t2, a0, t1                # y = x >> c
-    beqz t2, clz_skip              # if (y == 0) skip
-    sub  t0, t0, t1                # n -= c
+    li   t0, 32                    # n = 32    
+    # c = 16
+    srli t2, a0, 16                # y = x >> 16
+    beqz t2, c_equal_8                # branch if y is equal to zero
+    addi t0, t0, -16               # n -= 16
     mv   a0, t2                    # x = y
-clz_skip:
-    srli t1, t1, 1                 # c >>= 1
-    bnez t1, clz_loop              # while (c != 0)
+c_equal_8:
+    srli t2, a0, 8                 # y = x >> 8
+    beqz t2, c_equal_4
+    addi t0, t0, -8                # n -= 8
+    mv   a0, t2                    # x = y
+c_equal_4:
+    srli t2, a0, 4                 # y = x >> 4
+    beqz t2, c_equal_2
+    addi t0, t0, -4                # n -= 4
+    mv   a0, t2                    # x = y
+c_equal_2:
+    srli t2, a0, 2                 # y = x >> 2
+    beqz t2, c_equal_1
+    addi t0, t0, -2                # n -= 2
+    mv   a0, t2                    # x = y
+c_equal_1:
+    srli t2, a0, 1                 # y = x >> 1
+    beqz t2, iter_end
+    addi t0, t0, -1                # n -= 1
+    mv   a0, t2                    # x = y
+iter_end:    
     sub  a0, t0, a0                # return n - x
     ret    
 offset_table:
